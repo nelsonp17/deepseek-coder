@@ -1,0 +1,17 @@
+# Build artifacts
+/deekseep
+/deekseep.exe
+/cli/deekseep
+/cli/deekseep.exe
+/code/deekseep
+/code/deekseep.exe
+
+# Editor
+.idea/
+.vscode/
+*.swp
+.env
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,14 +1,14 @@
 #Requires -Version 7
 <#
 .SYNOPSIS
-    Compila deekseep-coder con la versión estampada en el binario.
+    Compila deepseek-coder con la versión estampada en el binario.
 
 .DESCRIPTION
     Sin -All produce solo el binario de esta máquina. Con -All genera los tres
     objetivos habituales (Windows/amd64, Linux/amd64, macOS/arm64).
 
 .PARAMETER Version
-    Versión que reportará `deekseep --version`. Por defecto "dev", que es lo que
+    Versión que reportará `deepseek --version`. Por defecto "dev", que es lo que
     dice un binario sin estampar.
 
 .PARAMETER OutDir
@@ -50,12 +50,12 @@ function Build-Target {
 if ($All) {
     # El de Windows es también el que se usa en esta máquina, así que lleva el
     # nombre corto: es el binario que el usuario va a ejecutar.
-    Build-Target "windows" "amd64" "deekseep.exe"
-    Build-Target "linux" "amd64" "deekseep-linux-amd64"
-    Build-Target "darwin" "arm64" "deekseep-macos-arm64"
+    Build-Target "windows" "amd64" "deepseek.exe"
+    Build-Target "linux" "amd64" "deepseek-linux-amd64"
+    Build-Target "darwin" "arm64" "deepseek-macos-arm64"
 }
 else {
-    Build-Target "windows" "amd64" "deekseep.exe"
+    Build-Target "windows" "amd64" "deepseek.exe"
 }
 
 Write-Host ""

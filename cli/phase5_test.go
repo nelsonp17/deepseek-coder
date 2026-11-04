@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"deekseep-coder/internal/config"
-	"deekseep-coder/internal/deepseek"
+	"deepseek-coder/internal/config"
+	"deepseek-coder/internal/deepseek"
 )
 
 func TestPlanModeBlocksWrites(t *testing.T) {

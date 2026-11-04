@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"deekseep-coder/internal/session"
-	"deekseep-coder/internal/todo"
+	"deepseek-coder/internal/session"
+	"deepseek-coder/internal/todo"
 )
 
 func listArgs(items ...string) string {

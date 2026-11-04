@@ -7,8 +7,11 @@ import (
 )
 
 const (
-	keyringService = "deekseep-coder"
-	keyringItem    = "api-key"
+	keyringService = "deepseek-coder"
+	// legacyKeyringService is the name the key was stored under before the
+	// product name was fixed; kept so the rename does not force a re-login.
+	legacyKeyringService = "deekseep-coder"
+	keyringItem          = "api-key"
 )
 
 // openKeyring opens the OS keyring with the backends available on each
@@ -16,8 +19,13 @@ const (
 // Service. It returns an error when no backend is available (e.g. headless
 // Linux without a secret service).
 func openKeyring() (keyring.Keyring, error) {
+	return openKeyringNamed(keyringService)
+}
+
+// openKeyringNamed opens the OS keyring under a specific service name.
+func openKeyringNamed(service string) (keyring.Keyring, error) {
 	return keyring.Open(keyring.Config{
-		ServiceName: keyringService,
+		ServiceName: service,
 		AllowedBackends: []keyring.BackendType{
 			keyring.WinCredBackend,
 			keyring.KeychainBackend,
@@ -38,6 +46,25 @@ func GetAPIKey(cfg *Config) string {
 		}
 	}
 	return cfg.APIKey
+}
+
+// migrateLegacyKey moves a key stored under the old service name to the new
+// one, so a rename does not look like a lost login.
+func migrateLegacyKey() string {
+	ring, err := openKeyringNamed(legacyKeyringService)
+	if err != nil {
+		return ""
+	}
+	item, err := ring.Get(keyringItem)
+	if err != nil || len(item.Data) == 0 {
+		return ""
+	}
+	if modern, err := openKeyring(); err == nil {
+		if modern.Set(keyring.Item{Key: keyringItem, Data: item.Data}) == nil {
+			_ = ring.Remove(keyringItem) // moved: do not leave a stale copy
+		}
+	}
+	return string(item.Data)
 }
 
 // SetAPIKey stores the key in the OS keyring. If no keyring backend is
@@ -71,6 +98,11 @@ func APIKeySource(cfg *Config) string {
 		if item, err := ring.Get(keyringItem); err == nil && len(item.Data) > 0 {
 			return "OS keyring"
 		}
+	}
+	// A key still stored under the old service name is the keyring too: report
+	// it as such instead of claiming there is no key.
+	if migrateLegacyKey() != "" {
+		return "OS keyring"
 	}
 	if cfg.APIKey != "" {
 		return "config file (plain text)"

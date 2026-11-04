@@ -1,4 +1,4 @@
-module deekseep-coder
+module deepseek-coder
 
 go 1.26.0
 

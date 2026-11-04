@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/todo"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/todo"
 )
 
 // toolTodo is the name the model uses to publish its task list.

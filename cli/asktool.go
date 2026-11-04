@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"deekseep-coder/internal/deepseek"
+	"deepseek-coder/internal/deepseek"
 )
 
 // toolQuestion is the tool the model uses to ask a structured question.

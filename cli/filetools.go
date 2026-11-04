@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/fstools"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/fstools"
 )
 
 // Names of the built-in file tools. They are prefixed with _file where a bare

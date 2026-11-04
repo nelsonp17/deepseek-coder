@@ -1,4 +1,4 @@
-# Estudio comparativo: deekseep-coder vs. DeepSeek Harness
+# Estudio comparativo: deepseek-coder vs. DeepSeek Harness
 
 > Documento de trabajo. Analiza el código de referencia que hay en `deepseek-harness-master/`
 > frente al proyecto Go de este repositorio, para decidir qué replicar, qué evitar y en qué orden.
@@ -7,7 +7,7 @@
 
 ## 1. Qué se ha analizado
 
-| | `deekseep-coder` (tu proyecto) | `deepseek-harness-master` (referencia) |
+| | `deepseek-coder` (tu proyecto) | `deepseek-harness-master` (referencia) |
 |---|---|---|
 | Lenguaje | Go 1.26, sin dependencias de runtime | TypeScript (ESM), Node ≥ 24.9 |
 | Tamaño | 6 892 líneas de código + 2 537 de tests, 35 ficheros | 20 233 ficheros, 134 MB, 6 042 `.ts` + 821 `.tsx` |
@@ -56,7 +56,7 @@ Cinco conclusiones que ordenan todo lo demás:
 
 ## 3. Las dos arquitecturas en una página
 
-### 3.1 Cómo funciona deekseep-coder
+### 3.1 Cómo funciona deepseek-coder
 
 ```
 main.go ──► app{cfg, msg, proj, mcp, perm}
@@ -124,7 +124,7 @@ No es una lista de consolación: son cosas que un clon no trae y que cuestan.
 | Adjuntos `@ruta` con presupuesto, binarios y fences dinámicos | `internal/attach/` | El Harness usa `attachment`/`spill`; tu versión es más simple pero resuelve el caso real |
 | Contexto de proyecto con modo `full`/`light`/`off` y medición | `loadProject`, `/context` | El Harness lo hace con `compaction` + `token-meter`; tu versión es el 20 % que da el 80 % |
 | Tokens por petición y de sesión, con la ventana del modelo | `/tokens` | El Harness tiene `token-meter`; tú ya tienes lo esencial |
-| Saldo de la cuenta | `deekseep balance` | El Harness lo tiene en `llm-deepseek-account`, pero en la UI |
+| Saldo de la cuenta | `deepseek balance` | El Harness lo tiene en `llm-deepseek-account`, pero en la UI |
 | `--pipe` para scripts y CI | `pipeQuestion` | El Harness lo cubre con `headless` |
 | Diccionario `/help` generado de datos vivos | `cli/help.go` | El Harness tiene `ctx.commands` + UI; tu catálogo en terminal es mejor que nada |
 | Bilingüe es/en de verdad | `internal/i18n/` (903 líneas) | El Harness tiene i18n maduro; el tuyo cubre todo el producto |
@@ -200,7 +200,7 @@ variantes de lo mismo.
 | Bifurcar (fork) | Copia del prefijo + `session/end-seed` | No existe | Hueco medio |
 | Reparar tool calls huérfanas | Resultados sintéticos (`TOOL_OUTCOME_UNKNOWN`, `TOOL_NOT_STARTED`, `ABORTED_BEFORE_DISPATCH`) | Si el turno falla, quedan `tool_calls` sin `tool` en el historial | Hueco bajo, barato |
 | Auditoría / replay | Todo evento durable, con migraciones de formato | Nada | Hueco medio |
-| Buscar en sesiones | Herramientas `session_search`, `session_event_*` | `deekseep history` (listar y borrar) | Hueco medio |
+| Buscar en sesiones | Herramientas `session_search`, `session_event_*` | `deepseek history` (listar y borrar) | Hueco medio |
 
 **Por qué esto importa aunque tú no quieras un log:** sin un registro de eventos no puedes
 hacer **compactación** (necesitas «ocultar» un tramo sin destruirlo), ni **resume**, ni
@@ -433,7 +433,7 @@ un runtime de plugins o una Web UI gemela habría duplicado el tamaño del proye
 lo único que este CLI hace mejor que el Harness: vivir en el terminal.
 
 Lo que sí se añadió como cierre, porque cabe en el producto y no añade superficie:
-`session_search` (`internal/session/search.go`) y `deekseep history search`, que convierten
+`session_search` (`internal/session/search.go`) y `deepseek history search`, que convierten
 el log durable de la Fase 2 en memoria consultable.
 
 ---

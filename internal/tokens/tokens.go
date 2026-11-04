@@ -6,7 +6,7 @@
 // value whenever one exists, and only the delta is estimated.
 package tokens
 
-import "deekseep-coder/internal/deepseek"
+import "deepseek-coder/internal/deepseek"
 
 // BytesPerToken is the divisor used by the estimator.
 //

@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/i18n"
-	"deekseep-coder/internal/project"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/i18n"
+	"deepseek-coder/internal/project"
 )
 
 // writeSkillFile creates a SKILL.md with frontmatter and returns its path.

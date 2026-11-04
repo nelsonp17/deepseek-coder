@@ -21,8 +21,8 @@ import (
 	"sync"
 	"time"
 
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/todo"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/todo"
 )
 
 // Event types written to the log.
@@ -128,8 +128,38 @@ type Session struct {
 }
 
 // Dir returns the directory that holds the session logs.
+// Directory names. The project used to be called "deekseep" (a typo); the old
+// name is kept only so the sessions written by the previous binary survive the
+// rename.
+const (
+	appDirName       = "deepseek-coder"
+	legacyAppDirName = "deekseep-coder"
+)
+
+// Dir returns the directory that holds the session logs.
+//
+// The project was renamed from "deekseep" to "deepseek", so the data directory
+// follows: the sessions written before the rename are moved on first use. If
+// the move fails, the old directory is used instead of losing the history.
 func Dir() string {
-	return filepath.Join(userDataDir(), "deekseep-coder", "sessions")
+	return filepath.Join(resolveAppDir(userDataDir()), "sessions")
+}
+
+// resolveAppDir returns the data directory, migrating the legacy one when it
+// can.
+func resolveAppDir(base string) string {
+	newDir := filepath.Join(base, appDirName)
+	oldDir := filepath.Join(base, legacyAppDirName)
+	if _, err := os.Stat(newDir); err == nil {
+		return newDir
+	}
+	if _, err := os.Stat(oldDir); err != nil {
+		return newDir
+	}
+	if err := os.Rename(oldDir, newDir); err != nil {
+		return oldDir
+	}
+	return newDir
 }
 
 func userDataDir() string {

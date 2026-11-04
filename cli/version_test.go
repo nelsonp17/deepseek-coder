@@ -42,7 +42,7 @@ func TestVersionString(t *testing.T) {
 	defer func() { version = old }()
 
 	got := versionString()
-	for _, want := range []string{"deekseep", "v9.9.9", runtime.GOOS, runtime.GOARCH, runtime.Version()} {
+	for _, want := range []string{"deepseek", "v9.9.9", runtime.GOOS, runtime.GOARCH, runtime.Version()} {
 		if !strings.Contains(got, want) {
 			t.Errorf("versionString() = %q, missing %q", got, want)
 		}

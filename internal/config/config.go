@@ -130,6 +130,35 @@ func (c *Config) Save() error {
 	return os.WriteFile(path, data, 0o600)
 }
 
+// Directory names. The project used to be called "deekseep" (a typo); the old
+// name is kept only so the data written by the previous binary can be moved.
+const (
+	appDirName       = "deepseek-coder"
+	legacyAppDirName = "deekseep-coder"
+)
+
+// resolveAppDir returns the directory this program should use.
+//
+// The project was renamed from "deekseep" to "deepseek", so the data directory
+// has to follow: without moving it the config, the sessions and every setting
+// the user already had would be orphaned. If the move fails (permissions, or
+// another instance holding it) it keeps using the old directory rather than
+// pretending the user is new.
+func resolveAppDir(base string) string {
+	newDir := filepath.Join(base, appDirName)
+	oldDir := filepath.Join(base, legacyAppDirName)
+	if _, err := os.Stat(newDir); err == nil {
+		return newDir // already migrated, or a fresh install
+	}
+	if _, err := os.Stat(oldDir); err != nil {
+		return newDir // nothing to migrate
+	}
+	if err := os.Rename(oldDir, newDir); err != nil {
+		return oldDir // could not move it: keep reading what works
+	}
+	return newDir
+}
+
 // Path returns the config file location.
 func Path() (string, error) {
 	dir := configDir
@@ -140,5 +169,5 @@ func Path() (string, error) {
 			return "", err
 		}
 	}
-	return filepath.Join(dir, "deekseep-coder", "config.json"), nil
+	return filepath.Join(resolveAppDir(dir), "config.json"), nil
 }

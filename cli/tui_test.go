@@ -14,9 +14,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"deekseep-coder/internal/config"
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/i18n"
+	"deepseek-coder/internal/config"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/i18n"
 )
 
 func TestTUIHelpers(t *testing.T) {

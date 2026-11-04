@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"deekseep-coder/internal/config"
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/session"
+	"deepseek-coder/internal/config"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/session"
 )
 
 // seededApp builds an app with a session full of large messages.

@@ -39,6 +39,7 @@ type Messages struct {
 	NoConversations      string
 	EmptyQuestion        string
 	HistoryDisabled      string
+	historyDisabledAt    string
 	SessionOpenFailed    string
 	CompactionNoSession  string
 	CompactionNoWindow   string
@@ -446,6 +447,12 @@ func (m *Messages) ToolBlocked(name, mode string) string {
 	return fmt.Sprintf(m.toolBlocked, name, mode)
 }
 
+// HistoryDisabledAt explains that the session log cannot be written, and what
+// is lost because of it.
+func (m *Messages) HistoryDisabledAt(dir string, err error) string {
+	return fmt.Sprintf(m.historyDisabledAt, dir, err)
+}
+
 // CompactionRunning announces a compaction of the given token size.
 func (m *Messages) CompactionRunning(tokens int) string {
 	return fmt.Sprintf(m.compactionRunning, tokens)
@@ -502,15 +509,18 @@ func (m *Messages) UnknownHistoryCmd(cmd string) string {
 }
 
 var es = &Messages{
-	Lang:                 ES,
-	Welcome:              "DeepSeek coder — escribe tu mensaje, 'exit' para salir.",
-	NoAPIKey:             "No hay API key configurada: ejecuta `deekseep config set api_key <clave>` o define DEEPSEEK_API_KEY",
-	EnterAPIKey:          "Introduce tu API key de DeepSeek (no se mostrará al escribir):",
-	Saved:                "Guardado.",
-	Removed:              "Eliminado.",
-	NoConversations:      "Aún no hay conversaciones.",
-	EmptyQuestion:        "Pregunta vacía: usa `deekseep ask \"<pregunta>\"`",
-	HistoryDisabled:      "aviso: historial desactivado:",
+	Lang:            ES,
+	Welcome:         "DeepSeek coder — escribe tu mensaje, 'exit' para salir.",
+	NoAPIKey:        "No hay API key configurada: ejecuta `deepseek config set api_key <clave>` o define DEEPSEEK_API_KEY",
+	EnterAPIKey:     "Introduce tu API key de DeepSeek (no se mostrará al escribir):",
+	Saved:           "Guardado.",
+	Removed:         "Eliminado.",
+	NoConversations: "Aún no hay conversaciones.",
+	EmptyQuestion:   "Pregunta vacía: usa `deepseek ask \"<pregunta>\"`",
+	HistoryDisabled: "aviso: historial desactivado:",
+	historyDisabledAt: "aviso: no puedo guardar el historial en %s (%v).\n" +
+		"         Esta sesión no se guardará: sin --continue, sin --resume y sin búsqueda.\n" +
+		"         Si el CLI corre en un entorno restringido, ejecútalo desde una terminal normal.",
 	SessionOpenFailed:    "no se pudo abrir la sesión:",
 	CompactionNoSession:  "esta conversación no tiene historial guardado",
 	CompactionNoWindow:   "no sé la ventana de contexto del modelo; no puedo decidir cuándo compactar",
@@ -519,7 +529,7 @@ var es = &Messages{
 	CompactionFailed:     "no se pudo compactar:",
 	NoTodos:              "todavía no hay ninguna lista de tareas",
 	NoMatches:            "sin coincidencias en conversaciones anteriores",
-	HistorySearchUsage:   "uso: deekseep history search <texto>",
+	HistorySearchUsage:   "uso: deepseek history search <texto>",
 	PlanOn:               "modo plan ACTIVADO: solo lectura hasta que apruebes el plan",
 	QuestionHelp:         "1-9 elige · ↑↓ mueve · Espacio marca · Enter confirma · Esc cancela",
 	PlanOff:              "modo plan desactivado",
@@ -550,33 +560,33 @@ var es = &Messages{
 	InvalidLangValue:     "Idioma inválido: usa 'es' o 'en'",
 	NotSet:               "(sin configurar)",
 	Default:              "(por defecto)",
-	ConfigUsage:          "uso: deekseep config get|set|unset",
-	SetUsage:             "uso: deekseep config set <clave> <valor>",
-	UnsetUsage:           "uso: deekseep config unset <clave>",
-	HistoryShowUsage:     "uso: deekseep history show <id>",
-	HistoryDeleteUsage:   "uso: deekseep history delete <id>",
-	Usage: `deekseep-coder — asistente de código con DeepSeek
+	ConfigUsage:          "uso: deepseek config get|set|unset",
+	SetUsage:             "uso: deepseek config set <clave> <valor>",
+	UnsetUsage:           "uso: deepseek config unset <clave>",
+	HistoryShowUsage:     "uso: deepseek history show <id>",
+	HistoryDeleteUsage:   "uso: deepseek history delete <id>",
+	Usage: `deepseek-coder — asistente de código con DeepSeek
 
 Uso:
-  deekseep [--debug]            inicia un chat interactivo (--debug: logs de la API)
-  deekseep ask "<pregunta>"     hace una consulta puntual
-  deekseep --pipe [pregunta]    manda por stdin contenido (archivos, logs, errores)
-  deekseep --json ask ...       salida NDJSON (start/delta/usage/done/error) para scripts
-  deekseep -c                   continúa la última sesión guardada
-  deekseep --resume <id>        reanuda una sesión concreta
-  deekseep --version            muestra la versión compilada
-  deekseep config get           muestra la configuración actual
-  deekseep config set <clave> <valor>
+  deepseek [--debug]            inicia un chat interactivo (--debug: logs de la API)
+  deepseek ask "<pregunta>"     hace una consulta puntual
+  deepseek --pipe [pregunta]    manda por stdin contenido (archivos, logs, errores)
+  deepseek --json ask ...       salida NDJSON (start/delta/usage/done/error) para scripts
+  deepseek -c                   continúa la última sesión guardada
+  deepseek --resume <id>        reanuda una sesión concreta
+  deepseek --version            muestra la versión compilada
+  deepseek config get           muestra la configuración actual
+  deepseek config set <clave> <valor>
                                 configura un valor (api_key, model, base_url, lang,
                                 thinking, reasoning_effort, shell, shell_timeout, context)
-  deekseep config unset <clave> elimina un valor de configuración
-  deekseep history              lista las conversaciones guardadas
-  deekseep history show <id>    muestra una conversación
-  deekseep history delete <id>  elimina una conversación
-  deekseep models               lista los modelos disponibles de la API
-  deekseep balance              consulta el saldo de la cuenta
-  deekseep mcp                  muestra los servidores MCP y sus herramientas
-  deekseep help                 muestra esta ayuda
+  deepseek config unset <clave> elimina un valor de configuración
+  deepseek history              lista las conversaciones guardadas
+  deepseek history show <id>    muestra una conversación
+  deepseek history delete <id>  elimina una conversación
+  deepseek models               lista los modelos disponibles de la API
+  deepseek balance              consulta el saldo de la cuenta
+  deepseek mcp                  muestra los servidores MCP y sus herramientas
+  deepseek help                 muestra esta ayuda
 
 Autocompletado en el chat:
   @<ruta>   completa rutas de archivo (Tab)
@@ -599,14 +609,14 @@ Entorno:
 	modelNotAvailable:          "El modelo %s ya no está disponible. Selecciona otro:",
 	modelNotListed:             "El modelo %s no está en la lista de modelos disponibles. Si no existe, la API devolverá un error.",
 	modelSetDefault:            "Modelo por defecto: %s",
-	modelInvalidNonInteractive: "El modelo configurado %s no está disponible y no hay terminal interactiva para seleccionar otro. Ejecuta `deekseep models` o `deekseep config set model <id>`.",
+	modelInvalidNonInteractive: "El modelo configurado %s no está disponible y no hay terminal interactiva para seleccionar otro. Ejecuta `deepseek models` o `deepseek config set model <id>`.",
 	ModelsTitle:                "Modelos disponibles (* = en uso):",
 	NoModels:                   "No hay modelos disponibles.",
 	ModelUsage:                 "uso: /models <id> — cambia y guarda el modelo por defecto",
 	SelectModel:                "Selecciona el modelo por defecto:",
 	InvalidModelSelection:      "Selección inválida. Introduce un número o un ID de modelo.",
 	ModelsUnavailable:          "aviso: no se pudo consultar la lista de modelos:",
-	NoModelNonInteractive:      "No hay modelo configurado y no hay terminal interactiva para seleccionarlo. Ejecuta `deekseep config set model <id>`.",
+	NoModelNonInteractive:      "No hay modelo configurado y no hay terminal interactiva para seleccionarlo. Ejecuta `deepseek config set model <id>`.",
 	EditorFallback:             "aviso: no se pudo activar el editor multilínea, usando entrada simple:",
 	ContextTitle:               "Contexto del proyecto:",
 	NoContext:                  "No hay contexto de proyecto cargado.",
@@ -687,7 +697,7 @@ no captura el ratón. Ctrl+Y copia la última respuesta sin seleccionar.`,
 	AttachBinary:        "archivo binario",
 	AttachBudget:        "sin presupuesto",
 	AttachReadFailed:    "no se pudo leer",
-	PipeUsage:           "uso: deekseep --pipe [pregunta] — la pregunta también puede venir por la entrada estándar",
+	PipeUsage:           "uso: deepseek --pipe [pregunta] — la pregunta también puede venir por la entrada estándar",
 	attachHeader:        "Archivos adjuntos (%s):",
 	attachFileTag:       "<archivo: %s>",
 	attachItem:          "%s (%s)",
@@ -737,7 +747,7 @@ no captura el ratón. Ctrl+Y copia la última respuesta sin seleccionar.`,
 		"sandbox":   "Confinamiento de las herramientas. `read-only` deniega escribir y ejecutar comandos; `workspace-write` (por defecto) permite escribir solo dentro del proyecto; `full` quita el confinamiento de rutas. Es independiente de /approvals: una perilla decide si te pregunto, la otra hasta dónde puedo llegar. Los comandos destructivos siempre piden confirmación, incluso en modo auto.",
 		"approvals": "Muestra si se pide permiso en cada llamada y lo cambia con 'ask' o 'auto'. En 'auto' cualquier comando se ejecuta sin avisar; el estado se ve en la cabecera de la TUI y se restaura con /approvals ask. Dura lo que la sesión.",
 		"exit": "Cierra la sesión. Las conversaciones ya guardadas siguen en el historial " +
-			"(deekseep history).",
+			"(deepseek history).",
 		"login": "Guarda la API key en el llavero del sistema. Sin argumento la pide de forma " +
 			"oculta, que es lo recomendable; con argumento la toma de la línea de comandos y " +
 			"queda en el historial del shell. También puedes usar DEEPSEEK_API_KEY.",
@@ -765,7 +775,7 @@ no captura el ratón. Ctrl+Y copia la última respuesta sin seleccionar.`,
 		"copy": "Copia al portapapeles. Sin argumento copia la última respuesta; con 'all' copia la " +
 			"conversación completa en texto plano, sin colores ni códigos ANSI. Usa el portapapeles " +
 			"nativo y si no está disponible cae a OSC 52, así que también funciona por SSH.",
-		"save": "Guarda la conversación en Markdown. Sin ruta usa deekseep-chat-<fecha>.md en el " +
+		"save": "Guarda la conversación en Markdown. Sin ruta usa deepseek-chat-<fecha>.md en el " +
 			"directorio actual; con ruta, en el archivo indicado.",
 	},
 	ShellToolDescription: "Ejecuta una orden en el shell nativo del sistema operativo (%s) y devuelve la salida combinada de stdout y stderr, el código de salida y la duración. Úsala para inspeccionar el proyecto, compilar, ejecutar tests o usar git. Cada orden requiere permiso explícito del usuario.",
@@ -773,7 +783,7 @@ no captura el ratón. Ctrl+Y copia la última respuesta sin seleccionar.`,
 	ShellParamDir:        "Directorio de trabajo (opcional; por defecto, el del proyecto).",
 	ShellParamTimeout:    "Tiempo máximo de ejecución en segundos (opcional).",
 	ShellAlwaysWarning:   "atención: 'a' permite ejecutar CUALQUIER orden durante el resto de la sesión.",
-	ShellDisabled:        "La herramienta de shell está desactivada. Actívala con `deekseep config set shell on`.",
+	ShellDisabled:        "La herramienta de shell está desactivada. Actívala con `deepseek config set shell on`.",
 	ShellDetected:        "shell nativo: %s (%s)",
 	RunUsage:             "uso: /run <orden>",
 	ShellEmptyCommand:    "Orden vacía.",
@@ -827,15 +837,18 @@ no captura el ratón. Ctrl+Y copia la última respuesta sin seleccionar.`,
 }
 
 var en = &Messages{
-	Lang:                 EN,
-	Welcome:              "DeepSeek coder — type your message, 'exit' to quit.",
-	NoAPIKey:             "No API key set: run `deekseep config set api_key <key>` or set DEEPSEEK_API_KEY",
-	EnterAPIKey:          "Enter your DeepSeek API key (hidden while typing):",
-	Saved:                "Saved.",
-	Removed:              "Removed.",
-	NoConversations:      "No conversations yet.",
-	EmptyQuestion:        "Empty question: use `deekseep ask \"<question>\"`",
-	HistoryDisabled:      "warning: history disabled:",
+	Lang:            EN,
+	Welcome:         "DeepSeek coder — type your message, 'exit' to quit.",
+	NoAPIKey:        "No API key set: run `deepseek config set api_key <key>` or set DEEPSEEK_API_KEY",
+	EnterAPIKey:     "Enter your DeepSeek API key (hidden while typing):",
+	Saved:           "Saved.",
+	Removed:         "Removed.",
+	NoConversations: "No conversations yet.",
+	EmptyQuestion:   "Empty question: use `deepseek ask \"<question>\"`",
+	HistoryDisabled: "warning: history disabled:",
+	historyDisabledAt: "warning: cannot write the session history to %s (%v).\n" +
+		"         This session will not be saved: no --continue, no --resume, no search.\n" +
+		"         If the CLI runs inside a restricted environment, run it from a normal terminal.",
 	SessionOpenFailed:    "could not open the session:",
 	CompactionNoSession:  "this conversation has no saved history",
 	CompactionNoWindow:   "the model context window is unknown; cannot decide when to compact",
@@ -844,7 +857,7 @@ var en = &Messages{
 	CompactionFailed:     "could not compact:",
 	NoTodos:              "there is no task list yet",
 	NoMatches:            "no matches in previous conversations",
-	HistorySearchUsage:   "usage: deekseep history search <text>",
+	HistorySearchUsage:   "usage: deepseek history search <text>",
 	PlanOn:               "PLAN MODE on: read-only until you approve the plan",
 	QuestionHelp:         "1-9 pick · ↑↓ move · Space mark · Enter confirm · Esc cancel",
 	PlanOff:              "plan mode off",
@@ -875,34 +888,34 @@ var en = &Messages{
 	InvalidLangValue:     "Invalid language: use 'es' or 'en'",
 	NotSet:               "(not set)",
 	Default:              "(default)",
-	ConfigUsage:          "usage: deekseep config get|set|unset",
-	SetUsage:             "usage: deekseep config set <key> <value>",
-	UnsetUsage:           "usage: deekseep config unset <key>",
-	HistoryShowUsage:     "usage: deekseep history show <id>",
-	HistoryDeleteUsage:   "usage: deekseep history delete <id>",
-	Usage: `deekseep-coder — DeepSeek coding assistant
+	ConfigUsage:          "usage: deepseek config get|set|unset",
+	SetUsage:             "usage: deepseek config set <key> <value>",
+	UnsetUsage:           "usage: deepseek config unset <key>",
+	HistoryShowUsage:     "usage: deepseek history show <id>",
+	HistoryDeleteUsage:   "usage: deepseek history delete <id>",
+	Usage: `deepseek-coder — DeepSeek coding assistant
 
 Usage:
-  deekseep [--debug]          start an interactive chat (--debug: API logs)
-  deekseep ask "<question>"   ask a single question
-  deekseep --pipe [question]  pipe content through stdin (files, logs, errors)
-  deekseep --json ask ...     NDJSON output (start/delta/usage/done/error) for scripts
-  deekseep -c                 continue the most recent saved session
-  deekseep --resume <id>      resume a specific session
-  deekseep --version          show the compiled version
-  deekseep config get         show current configuration
-  deekseep config set <key> <value>
+  deepseek [--debug]          start an interactive chat (--debug: API logs)
+  deepseek ask "<question>"   ask a single question
+  deepseek --pipe [question]  pipe content through stdin (files, logs, errors)
+  deepseek --json ask ...     NDJSON output (start/delta/usage/done/error) for scripts
+  deepseek -c                 continue the most recent saved session
+  deepseek --resume <id>      resume a specific session
+  deepseek --version          show the compiled version
+  deepseek config get         show current configuration
+  deepseek config set <key> <value>
                               set a config value (api_key, model, base_url, lang,
                               thinking, reasoning_effort, shell, shell_timeout, context)
-  deekseep config unset <key> remove a config value
-  deekseep history            list saved conversations
-  deekseep history show <id>  show a conversation
-  deekseep history delete <id>
+  deepseek config unset <key> remove a config value
+  deepseek history            list saved conversations
+  deepseek history show <id>  show a conversation
+  deepseek history delete <id>
                               delete a conversation
-  deekseep models             list models available on the API
-  deekseep balance            check the account balance
-  deekseep mcp                show MCP servers and their tools
-  deekseep help               show this help
+  deepseek models             list models available on the API
+  deepseek balance            check the account balance
+  deepseek mcp                show MCP servers and their tools
+  deepseek help               show this help
 
 Autocompletion in the chat:
   @<path>   completes file paths (Tab)
@@ -925,14 +938,14 @@ Environment:
 	modelNotAvailable:          "Model %s is no longer available. Pick another:",
 	modelNotListed:             "Model %s is not in the available models list. If it does not exist, the API will return an error.",
 	modelSetDefault:            "Default model: %s",
-	modelInvalidNonInteractive: "Configured model %s is not available and there is no interactive terminal to pick another. Run `deekseep models` or `deekseep config set model <id>`.",
+	modelInvalidNonInteractive: "Configured model %s is not available and there is no interactive terminal to pick another. Run `deepseek models` or `deepseek config set model <id>`.",
 	ModelsTitle:                "Available models (* = in use):",
 	NoModels:                   "No models available.",
 	ModelUsage:                 "usage: /models <id> — switch and save the default model",
 	SelectModel:                "Select the default model:",
 	InvalidModelSelection:      "Invalid selection. Enter a number or a model ID.",
 	ModelsUnavailable:          "warning: could not fetch the models list:",
-	NoModelNonInteractive:      "No model configured and no interactive terminal to pick one. Run `deekseep config set model <id>`.",
+	NoModelNonInteractive:      "No model configured and no interactive terminal to pick one. Run `deepseek config set model <id>`.",
 	EditorFallback:             "warning: could not enable the multiline editor, using simple input:",
 	ContextTitle:               "Project context:",
 	NoContext:                  "No project context loaded.",
@@ -1014,7 +1027,7 @@ capture the mouse. Ctrl+Y copies the last reply without selecting anything.`,
 	AttachBinary:        "binary file",
 	AttachBudget:        "budget exhausted",
 	AttachReadFailed:    "could not read",
-	PipeUsage:           "usage: deekseep --pipe [question] — the question can also come from stdin",
+	PipeUsage:           "usage: deepseek --pipe [question] — the question can also come from stdin",
 	attachHeader:        "Attached files (%s):",
 	attachFileTag:       "<file: %s>",
 	attachItem:          "%s (%s)",
@@ -1064,7 +1077,7 @@ capture the mouse. Ctrl+Y copies the last reply without selecting anything.`,
 		"sandbox":   "How far the tools may reach. `read-only` denies writes and command execution; `workspace-write` (default) writes only inside the project; `full` drops the path confinement. It is independent from /approvals: one knob decides whether I ask, the other how far I can go. Destructive commands always ask, even in auto mode.",
 		"approvals": "Shows whether every call asks for permission and switches it with 'ask' or 'auto'. In 'auto' any command runs silently; the state is visible in the TUI header and restored with /approvals ask. It lasts for the session.",
 		"exit": "Closes the session. Conversations that were already saved stay in the history " +
-			"(deekseep history).",
+			"(deepseek history).",
 		"login": "Stores the API key in the system keyring. With no argument it asks for it hidden, " +
 			"which is the recommended way; with an argument it reads it from the command line and it " +
 			"ends up in the shell history. You can also use DEEPSEEK_API_KEY.",
@@ -1092,7 +1105,7 @@ capture the mouse. Ctrl+Y copies the last reply without selecting anything.`,
 		"copy": "Copies to the clipboard. With no argument it copies the last reply; with 'all' it " +
 			"copies the whole conversation as plain text, without colours or ANSI codes. It uses the " +
 			"native clipboard and falls back to OSC 52, so it also works over SSH.",
-		"save": "Saves the conversation as Markdown. With no path it uses deekseep-chat-<date>.md in " +
+		"save": "Saves the conversation as Markdown. With no path it uses deepseek-chat-<date>.md in " +
 			"the current directory; with a path, that file.",
 	},
 	ShellToolDescription: "Run a command in the operating system's native shell (%s) and return the combined stdout and stderr, the exit code and the duration. Use it to inspect the project, build, run tests or use git. Every command requires the user's explicit permission.",
@@ -1100,7 +1113,7 @@ capture the mouse. Ctrl+Y copies the last reply without selecting anything.`,
 	ShellParamDir:        "Working directory (optional; defaults to the project directory).",
 	ShellParamTimeout:    "Maximum run time in seconds (optional).",
 	ShellAlwaysWarning:   "warning: 'a' allows ANY command for the rest of this session.",
-	ShellDisabled:        "The shell tool is disabled. Enable it with `deekseep config set shell on`.",
+	ShellDisabled:        "The shell tool is disabled. Enable it with `deepseek config set shell on`.",
 	ShellDetected:        "native shell: %s (%s)",
 	RunUsage:             "usage: /run <command>",
 	ShellEmptyCommand:    "Empty command.",

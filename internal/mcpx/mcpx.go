@@ -34,7 +34,7 @@ func LoadConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	path := filepath.Join(dir, "deekseep-coder", "mcp.json")
+	path := filepath.Join(dir, "deepseek-coder", "mcp.json")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -156,7 +156,7 @@ func connectServer(parent context.Context, sc ServerConfig) (*Server, error) {
 	defer cancel()
 	if _, err := c.Initialize(opCtx, mcp.InitializeRequest{
 		Params: mcp.InitializeParams{
-			ClientInfo: mcp.Implementation{Name: "deekseep-coder", Version: "0.1.0"},
+			ClientInfo: mcp.Implementation{Name: "deepseek-coder", Version: "0.1.0"},
 		},
 	}); err != nil {
 		_ = c.Close()

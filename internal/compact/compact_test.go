@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/tokens"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/tokens"
 )
 
 func msg(role, content string) deepseek.Message {

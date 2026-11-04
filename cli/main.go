@@ -17,20 +17,20 @@ import (
 
 	"golang.org/x/term"
 
-	"deekseep-coder/internal/attach"
-	"deekseep-coder/internal/clipboard"
-	"deekseep-coder/internal/compact"
-	"deekseep-coder/internal/config"
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/editor"
-	"deekseep-coder/internal/fstools"
-	"deekseep-coder/internal/i18n"
-	"deekseep-coder/internal/jobs"
-	"deekseep-coder/internal/mcpx"
-	"deekseep-coder/internal/project"
-	"deekseep-coder/internal/session"
-	"deekseep-coder/internal/shell"
-	"deekseep-coder/internal/tokens"
+	"deepseek-coder/internal/attach"
+	"deepseek-coder/internal/clipboard"
+	"deepseek-coder/internal/compact"
+	"deepseek-coder/internal/config"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/editor"
+	"deepseek-coder/internal/fstools"
+	"deepseek-coder/internal/i18n"
+	"deepseek-coder/internal/jobs"
+	"deepseek-coder/internal/mcpx"
+	"deepseek-coder/internal/project"
+	"deepseek-coder/internal/session"
+	"deepseek-coder/internal/shell"
+	"deepseek-coder/internal/tokens"
 )
 
 func main() {
@@ -259,7 +259,7 @@ func run(args []string) error {
 	a.applySandbox()
 
 	// --pipe turns stdin into the question, so the command fits in a shell
-	// pipeline: cat main.go | deekseep --pipe "revisa esto".
+	// pipeline: cat main.go | deepseek --pipe "revisa esto".
 	if len(args) > 0 && (args[0] == "--pipe" || args[0] == "-p") {
 		q, err := a.pipeQuestion(args[1:], os.Stdin, isInteractive())
 		if err != nil {
@@ -1059,7 +1059,7 @@ func compactTokens(n int) string {
 
 // pipeQuestion builds the question for --pipe from the arguments and stdin.
 //
-// stdin is only read when it is not a terminal: otherwise `deekseep --pipe
+// stdin is only read when it is not a terminal: otherwise `deepseek --pipe
 // "pregunta"` typed by hand would block forever waiting for input.
 func (a *app) pipeQuestion(rest []string, stdin io.Reader, interactive bool) (string, error) {
 	prompt := strings.TrimSpace(strings.Join(rest, " "))
@@ -1674,7 +1674,7 @@ func (a *app) openSession(model string) error {
 	if err != nil {
 		// A session that cannot be written must not stop the chat; it only
 		// costs durability.
-		fmt.Fprintln(os.Stderr, a.msg.HistoryDisabled, err)
+		fmt.Fprintln(os.Stderr, a.msg.HistoryDisabledAt(dir, err))
 		return nil
 	}
 	a.session = s
@@ -1943,7 +1943,7 @@ func (a *app) copyTranscript() error {
 // the working directory when path is empty. It returns the absolute path.
 func saveTranscriptFile(path, text string) (string, error) {
 	if path == "" {
-		path = fmt.Sprintf("deekseep-chat-%s.md", time.Now().Format("20060102-150405"))
+		path = fmt.Sprintf("deepseek-chat-%s.md", time.Now().Format("20060102-150405"))
 	}
 	abs, err := filepath.Abs(path)
 	if err != nil {

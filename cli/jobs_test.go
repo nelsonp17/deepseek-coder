@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"deekseep-coder/internal/jobs"
-	"deekseep-coder/internal/session"
+	"deepseek-coder/internal/jobs"
+	"deepseek-coder/internal/session"
 )
 
 func TestJobNotification(t *testing.T) {

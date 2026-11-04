@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/project"
-	"deekseep-coder/internal/session"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/project"
+	"deepseek-coder/internal/session"
 )
 
 // A skill reference must show the marker and what the user typed. The

@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"deekseep-coder/internal/i18n"
+	"deepseek-coder/internal/i18n"
 )
 
 // slashCommand is one entry of the command registry.

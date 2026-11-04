@@ -7,6 +7,10 @@ Un coder asistente que usa la API de **DeepSeek** para generar, revisar y editar
 
 Multiplataforma: **Windows, macOS y Linux**.
 
+> El proyecto se llamaba `deekseep` (error tipográfico). Ahora es **deepseek** en
+> el módulo, el binario y las carpetas de datos; el CLI migra solo lo que ya
+> tenías al arrancar.
+
 ---
 
 ## ✨ Características
@@ -15,20 +19,20 @@ Multiplataforma: **Windows, macOS y Linux**.
 - Soporte de **streaming** de respuestas (token a token).
 - **Idioma configurable** (español/inglés): la interfaz y las respuestas del modelo se adaptan a tu preferencia.
 - **Primer arranque guiado**: si no hay API key ni idioma configurados, el CLI te los pregunta interactivamente.
-- **Modelos dinámicos**: consulta la lista de modelos disponible en la API (`deekseep models`) y cambia de modelo al vuelo dentro del chat (`/model <id>`).
+- **Modelos dinámicos**: consulta la lista de modelos disponible en la API (`deepseek models`) y cambia de modelo al vuelo dentro del chat (`/model <id>`).
 - **Validación de modelo al arrancar**: si el modelo configurado ya no está disponible en la API, te avisa y te muestra una lista seleccionable para cambiarlo.
 - **Contexto del proyecto**: el CLI accede a la carpeta donde se ejecuta y carga `AGENTS.md`, `DESIGN.md`, `README.md`, skills (`.agents/skills`) y el estado de git (branch, status, diff, commits) para dárselos al modelo.
 - **Editor multilínea**: `Ctrl+J` inserta un salto de línea, `Enter` envía el mensaje.
 - **Diccionario integrado**: `/help` documenta comandos, atajos, skills y herramientas MCP; `/help <tema>` abre la ficha de uno concreto.
 - **Markdown renderizado**: las respuestas del modelo se muestran con formato (títulos, negritas, código, listas, tablas, citas y enlaces) en vez del Markdown en crudo.
 - **Adjuntar archivos**: escribe `@ruta` y el modelo recibe el contenido real del archivo, con límites de tamaño y filtro de binarios.
-- **Modo `--pipe`**: mete contenido por tubería (`go test ./... 2>&1 | deekseep --pipe "..."`) para usarlo en scripts y CI.
+- **Modo `--pipe`**: mete contenido por tubería (`go test ./... 2>&1 | deepseek --pipe "..."`) para usarlo en scripts y CI.
 - **Memoria entre sesiones**: `session_search` busca en tus conversaciones anteriores, así el modelo puede retomar lo de ayer.
 - **Lista de tareas y modo plan**: el modelo anota lo que va a hacer, y puedes exigirle que planee en solo lectura antes de tocar nada.
 - **Trabajos en segundo plano**: un build largo no bloquea el chat; el resultado llega solo.
 - **Confinamiento**: modo `read-only`/`workspace-write`/`full`, independiente de si pide permiso, y comandos destructivos que siempre preguntan.
 - **Compactación**: cuando el historial llena la ventana, lo antiguo se resume y se sigue; el log no pierde nada.
-- **Control de consumo**: tokens de entrada/salida por petición y de toda la sesión, contexto frente a la ventana del modelo, y saldo de la cuenta con `deekseep balance`.
+- **Control de consumo**: tokens de entrada/salida por petición y de toda la sesión, contexto frente a la ventana del modelo, y saldo de la cuenta con `deepseek balance`.
 - **Contexto ajustable**: `config set context light|off` recorta el README y el diff que se envían en cada turno (~3 470 tokens menos en este repo).
 - **Soporte MCP**: conecta servidores MCP (herramientas externas) y el modelo puede usarlas **con tu permiso explícito** antes de ejecutar nada.
 - **Autocompletado**: escribe `@` para completar rutas de archivo y `/` para completar comandos, skills y herramientas MCP (con Tab).
@@ -91,7 +95,7 @@ Como el cuello de botella de esta herramienta es la **red** (llamar a la API), l
 ## 📁 Estructura del proyecto
 
 ```
-deekseep-coder/
+deepseek-coder/
 ├── cli/                    # Versión CLI/TUI
 │   ├── commands.go         # Registro de comandos (fuente única: ayuda + autocompletado)
 │   └── shell_tool_test.go  # Integración del bucle de herramientas
@@ -126,12 +130,12 @@ Requisitos: **Go 1.26+** ([descargar](https://go.dev/dl/)).
 
 ```sh
 # Compilar
-cd deekseep-coder
-go build -o deekseep ./cli        # Linux/macOS
-go build -o deekseep.exe ./cli    # Windows
+cd deepseek-coder
+go build -o deepseek ./cli        # Linux/macOS
+go build -o deepseek.exe ./cli    # Windows
 
 # Ejecutar
-go run ./cli                      # o ./deekseep tras compilar
+go run ./cli                      # o ./deepseek tras compilar
 ```
 
 Para una versión concreta, estampa el número en el binario:
@@ -144,12 +148,12 @@ Para una versión concreta, estampa el número en el binario:
 El script compila con `-trimpath -ldflags "-s -w -X main.version=..."` y deja los binarios en `dist/`. A mano es lo mismo:
 
 ```sh
-go build -trimpath -ldflags "-s -w -X main.version=v0.1.0" -o dist/deekseep ./cli
+go build -trimpath -ldflags "-s -w -X main.version=v0.1.0" -o dist/deepseek ./cli
 ```
 
 ```console
-$ deekseep --version
-deekseep v0.1.0 (windows/amd64, go1.26.1)
+$ deepseek --version
+deepseek v0.1.0 (windows/amd64, go1.26.1)
 ```
 
 Sin `-X` el binario se identifica como `dev`, para que nunca se confunda un build de trabajo con una release.
@@ -165,9 +169,9 @@ Lo más simple es el script:
 Y si prefieres los comandos a mano:
 
 ```sh
-GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.version=v0.1.0" -o dist/deekseep-windows.exe ./cli
-GOOS=darwin  GOARCH=arm64 go build -trimpath -ldflags "-s -w -X main.version=v0.1.0" -o dist/deekseep-macos ./cli
-GOOS=linux   GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.version=v0.1.0" -o dist/deekseep-linux ./cli
+GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.version=v0.1.0" -o dist/deepseek-windows.exe ./cli
+GOOS=darwin  GOARCH=arm64 go build -trimpath -ldflags "-s -w -X main.version=v0.1.0" -o dist/deepseek-macos ./cli
+GOOS=linux   GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.version=v0.1.0" -o dist/deepseek-linux ./cli
 ```
 
 Son binarios estáticos: no necesitan Go instalado en la máquina de destino.
@@ -182,43 +186,43 @@ Son binarios estáticos: no necesitan Go instalado en la máquina de destino.
 
 ```sh
 # Configurar la API key (una sola vez)
-deekseep config set api_key sk-xxxx
+deepseek config set api_key sk-xxxx
 
 # Consulta de una sola vez
-deekseep ask "escribe un hola mundo en Go"
+deepseek ask "escribe un hola mundo en Go"
 
 # Adjuntar archivos al mensaje
-deekseep ask "revisa @cli/main.go por bugs"
+deepseek ask "revisa @cli/main.go por bugs"
 
 # Meter contenido por tubería
-go test ./... 2>&1 | deekseep --pipe "resuelve estos errores"
+go test ./... 2>&1 | deepseek --pipe "resuelve estos errores"
 
 # Chat interactivo con streaming
-deekseep
+deepseek
 ```
 
 Comandos disponibles:
 
 | Comando | Descripción |
 |---|---|
-| `deekseep` | Chat interactivo en terminal |
-| `deekseep ask "..."` | Consulta de una sola vez (admite `@ruta`) |
-| `deekseep --pipe [pregunta]` | Lee la entrada estándar y la envía al modelo |
-| `deekseep --json ask "..."` | Igual que `ask` pero en NDJSON, para scripts y CI |
-| `deekseep -c` / `--continue` | Continúa la última sesión guardada |
-| `deekseep --resume <id>` | Reanuda una sesión concreta |
-| `deekseep config get` | Muestra la configuración (key enmascarada) |
-| `deekseep config set <key> <valor>` | Configura `api_key`, `model`, `base_url` o `lang` |
-| `deekseep config unset <key>` | Elimina un valor de configuración |
-| `deekseep config set lang es\|en` | Cambia el idioma de la interfaz |
-| `deekseep history` | Lista las sesiones guardadas |
-| `deekseep history show <id>` | Muestra una sesión |
-| `deekseep history search <texto>` | Busca en todas las conversaciones guardadas |
-| `deekseep history delete <id>` | Elimina una sesión |
-| `deekseep models` | Lista los modelos disponibles en la API |
-| `deekseep balance` | Consulta el saldo de la cuenta en la API |
-| `deekseep --version` | Muestra la versión compilada y la plataforma |
-| `deekseep help` | Ayuda |
+| `deepseek` | Chat interactivo en terminal |
+| `deepseek ask "..."` | Consulta de una sola vez (admite `@ruta`) |
+| `deepseek --pipe [pregunta]` | Lee la entrada estándar y la envía al modelo |
+| `deepseek --json ask "..."` | Igual que `ask` pero en NDJSON, para scripts y CI |
+| `deepseek -c` / `--continue` | Continúa la última sesión guardada |
+| `deepseek --resume <id>` | Reanuda una sesión concreta |
+| `deepseek config get` | Muestra la configuración (key enmascarada) |
+| `deepseek config set <key> <valor>` | Configura `api_key`, `model`, `base_url` o `lang` |
+| `deepseek config unset <key>` | Elimina un valor de configuración |
+| `deepseek config set lang es\|en` | Cambia el idioma de la interfaz |
+| `deepseek history` | Lista las sesiones guardadas |
+| `deepseek history show <id>` | Muestra una sesión |
+| `deepseek history search <texto>` | Busca en todas las conversaciones guardadas |
+| `deepseek history delete <id>` | Elimina una sesión |
+| `deepseek models` | Lista los modelos disponibles en la API |
+| `deepseek balance` | Consulta el saldo de la cuenta en la API |
+| `deepseek --version` | Muestra la versión compilada y la plataforma |
+| `deepseek help` | Ayuda |
 
 Dentro del chat interactivo puedes usar comandos de sesión:
 
@@ -257,7 +261,7 @@ Dentro del chat interactivo puedes usar comandos de sesión:
 >
 > En el transcript verás **solo la referencia y lo que escribiste** (`[Skill: caveman]` · `full revisa esto`): el cuerpo de la skill viaja al modelo, no a tu pantalla.
 
-> 💡 **TUI:** al ejecutar `deekseep` en una terminal interactiva se abre la interfaz a pantalla completa: historial scrolleable, mensajes con colores, spinner mientras el modelo responde, y barra de ayuda abajo. `Enter` envía, `Ctrl+J` nueva línea, `Tab` completa, `Ctrl+Y` copia la última respuesta, `PgUp`/`PgDn` hace scroll y `Ctrl+C` sale. Si la entrada no es una terminal (pipes/scripts), se usa automáticamente el modo de línea simple.
+> 💡 **TUI:** al ejecutar `deepseek` en una terminal interactiva se abre la interfaz a pantalla completa: historial scrolleable, mensajes con colores, spinner mientras el modelo responde, y barra de ayuda abajo. `Enter` envía, `Ctrl+J` nueva línea, `Tab` completa, `Ctrl+Y` copia la última respuesta, `PgUp`/`PgDn` hace scroll y `Ctrl+C` sale. Si la entrada no es una terminal (pipes/scripts), se usa automáticamente el modo de línea simple.
 
 ### 📖 El diccionario: `/help` y `/help <tema>`
 
@@ -422,7 +426,7 @@ Puedes ejecutar órdenes tú mismo sin pasar por el modelo:
 Y desactivar la herramienta por completo:
 
 ```sh
-deekseep config set shell off
+deepseek config set shell off
 ```
 
 ---
@@ -485,7 +489,7 @@ solo el nombre. Funciona en el chat interactivo, en `ask` y en `--pipe`, y el
 autocompletado de `@` sigue igual (escribe `@` y pulsa **Tab**).
 
 ```sh
-deekseep ask "revisa @cli/main.go por bugs"
+deepseek ask "revisa @cli/main.go por bugs"
 ```
 
 Dentro del chat:
@@ -529,19 +533,19 @@ el bloque usa cuatro backticks y no se rompe.
 Para meter contenido por tubería, sin abrir el chat ni tocar el portapapeles:
 
 ```sh
-cat main.go | deekseep --pipe "busca fugas de recursos"
+cat main.go | deepseek --pipe "busca fugas de recursos"
 
-go test ./... 2>&1 | deekseep --pipe "resuelve estos errores de compilación"
+go test ./... 2>&1 | deepseek --pipe "resuelve estos errores de compilación"
 
-git diff | deekseep --pipe "resume estos cambios en 5 líneas"
+git diff | deepseek --pipe "resume estos cambios en 5 líneas"
 
-deekseep --pipe "explica esto" < notas.txt
+deepseek --pipe "explica esto" < notas.txt
 ```
 
 - La pregunta se puede combinar con `stdin`: se envía primero tu pregunta y luego
   el contenido, etiquetado con su tamaño.
 - Si `stdin` es una terminal (no hay tubería), **no se lee** — así
-  `deekseep --pipe "pregunta"` escrito a mano no se queda colgado.
+  `deepseek --pipe "pregunta"` escrito a mano no se queda colgado.
 - La respuesta va a **stdout** en texto plano y los avisos a **stderr**, así que
   puedes encadenarlo.
 - Sale con código ≠ 0 si la API falla, que es lo que necesita un CI.
@@ -552,7 +556,7 @@ deekseep --pipe "explica esto" < notas.txt
 Con `--json`, `ask` y `--pipe` emiten **NDJSON** por stdout en vez de texto:
 
 ```sh
-deekseep --json ask "Responde solo: ok"
+deepseek --json ask "Responde solo: ok"
 ```
 ```json
 {"type":"start","model":"deepseek-chat"}
@@ -562,7 +566,7 @@ deekseep --json ask "Responde solo: ok"
 ```
 
 Eventos: `start`, `delta` (por fragmento), `usage`, `done` y `error`. Los avisos
-siguen yendo a stderr, así que `deekseep --json ... | jq` funciona sin
+siguen yendo a stderr, así que `deepseek --json ... | jq` funciona sin
 contaminación. El código de salida es `0` si terminó y `1` si falló.
 
 ---
@@ -612,9 +616,9 @@ ensuciar stdout si estás en una tubería.
 | `off` | Nada de contexto de proyecto | 0 |
 
 ```sh
-deekseep config set context light   # ahorra ~3 470 tokens por petición
-deekseep config set context off     # lo mínimo, para consultas sueltas
-deekseep config unset context       # vuelve a full
+deepseek config set context light   # ahorra ~3 470 tokens por petición
+deepseek config set context off     # lo mínimo, para consultas sueltas
+deepseek config unset context       # vuelve a full
 ```
 
 `/context` te enseña el desglose real y cuánto ahorrarías:
@@ -637,7 +641,7 @@ instante: también puedes usar `/context reload` tras editar el modo.
 ### Saldo
 
 ```sh
-deekseep balance
+deepseek balance
 ```
 
 ```
@@ -673,9 +677,9 @@ El CLI puede conectarse a servidores MCP (Model Context Protocol) para darle al 
 
 Copia `mcp.example.json` a tu directorio de configuración como `mcp.json`:
 
-- **Windows:** `%APPDATA%\deekseep-coder\mcp.json`
-- **macOS:** `~/Library/Application Support/deekseep-coder/mcp.json`
-- **Linux:** `~/.config/deekseep-coder/mcp.json`
+- **Windows:** `%APPDATA%\deepseek-coder\mcp.json`
+- **macOS:** `~/Library/Application Support/deepseek-coder/mcp.json`
+- **Linux:** `~/.config/deepseek-coder/mcp.json`
 
 ```json
 {
@@ -712,7 +716,7 @@ Si no hay terminal interactiva (scripts/pipes), **la llamada se deniega por defe
 
 | Comando | Descripción |
 |---|---|
-| `deekseep mcp` | Muestra los servidores MCP configurados y sus herramientas |
+| `deepseek mcp` | Muestra los servidores MCP configurados y sus herramientas |
 | `/mcp` (en el chat) | Muestra el estado de los servidores MCP de la sesión |
 
 > 💡 En Windows o máquinas compartidas, prefiere la variable de entorno `DEEPSEEK_API_KEY` en lugar de guardar la key en el archivo de config (ver [Seguridad](#-seguridad)).
@@ -721,7 +725,7 @@ Si no hay terminal interactiva (scripts/pipes), **la llamada se deniega por defe
 
 ## 🚀 Primer arranque
 
-La primera vez que ejecutes `deekseep` (o cualquier comando) sin configuración, el CLI te preguntará:
+La primera vez que ejecutes `deepseek` (o cualquier comando) sin configuración, el CLI te preguntará:
 
 1. **Idioma** — selecciona Español o English (la interfaz y las respuestas del modelo se adaptan).
 2. **API key** — la introduces una sola vez (oculta mientras escribes) y se guarda en el llavero del sistema.
@@ -732,9 +736,9 @@ En cada sesión se usa el último modelo seleccionado. Si el modelo configurado 
 También puedes configurarlo manualmente:
 
 ```sh
-deekseep config set lang es        # o 'en'
-deekseep config set api_key sk-xxxx
-deekseep config set model deepseek-reasoner
+deepseek config set lang es        # o 'en'
+deepseek config set api_key sk-xxxx
+deepseek config set model deepseek-reasoner
 ```
 
 ---
@@ -745,7 +749,7 @@ Obtén tu API key en [platform.deepseek.com](https://platform.deepseek.com) y co
 
 ```sh
 # CLI
-deekseep config set api_key sk-xxxx
+deepseek config set api_key sk-xxxx
 export DEEPSEEK_API_KEY=sk-xxxx   # o variable de entorno
 
 # GUI
@@ -760,7 +764,7 @@ Variables de entorno soportadas:
 | `DEEPSEEK_MODEL` | Modelo a usar | `deepseek-chat` |
 | `DEEPSEEK_BASE_URL` | URL base de la API | `https://api.deepseek.com` |
 
-Claves de configuración (`deekseep config set <clave> <valor>`):
+Claves de configuración (`deepseek config set <clave> <valor>`):
 
 | Clave | Descripción |
 |---|---|
@@ -834,7 +838,7 @@ en la TUI el modelo sigue solo si estabas inactivo:
 ```
 [background job #1 finished (exit 0, 12.3s)]
 $ go test ./...
-ok  deekseep-coder/internal/...
+ok  deepseek-coder/internal/...
 ```
 
 `/jobs` lista los que siguen en marcha.
@@ -890,9 +894,9 @@ confirmación, incluso con `approval auto`**: es la red de seguridad de último
 recurso, no un sandbox.
 
 ```sh
-deekseep config set sandbox read-only
-deekseep config set approval auto
-deekseep config get
+deepseek config set sandbox read-only
+deepseek config set approval auto
+deepseek config get
 ```
 
 ### API key
@@ -904,16 +908,16 @@ deekseep config get
 - Si no hay llavero disponible (p. ej. Linux sin servicio de secretos), se usa como *fallback* `config.json` en el directorio de configuración del usuario, con permisos `0600` en Linux/macOS.
 - Precedencia de resolución: `DEEPSEEK_API_KEY` (env) → llavero del SO → `config.json`.
 - La key nunca se muestra completa en pantalla ni se envía a ningún servidor que no sea `api.deepseek.com`.
-- `deekseep config unset api_key` elimina la key del llavero y del archivo de config.
+- `deepseek config unset api_key` elimina la key del llavero y del archivo de config.
 
 ### Historial de chat
 
 Cada conversación es un **log JSONL append-only**, una línea por hecho, en el
 directorio de datos del usuario:
 
-- **Windows:** `%LOCALAPPDATA%\deekseep-coder\sessions\<id>.jsonl`
-- **macOS:** `~/Library/Application Support/deekseep-coder/sessions/<id>.jsonl`
-- **Linux:** `~/.local/share/deekseep-coder/sessions/<id>.jsonl`
+- **Windows:** `%LOCALAPPDATA%\deepseek-coder\sessions\<id>.jsonl`
+- **macOS:** `~/Library/Application Support/deepseek-coder/sessions/<id>.jsonl`
+- **Linux:** `~/.local/share/deepseek-coder/sessions/<id>.jsonl`
 
 ```json
 {"seq":0,"time":"2026-11-02T14:39:39-04:00","type":"session/start","data":{...}}
@@ -923,15 +927,15 @@ directorio de datos del usuario:
 ```
 
 - El historial **no contiene la API key** (vive en el llavero, separado).
-- Se consulta con `deekseep history show <id>` y se borra con `history delete <id>`.
+- Se consulta con `deepseek history show <id>` y se borra con `history delete <id>`.
 - Un log cortado a mitad se **repara al abrirlo**: los `tool/result` que faltaban
   se rellenan y el turno abierto se cierra como `interrupted`.
 
 ### 🔁 Reanudar una conversación
 
 ```sh
-deekseep -c                # continúa la última sesión
-deekseep --resume <id>     # reanuda una concreta
+deepseek -c                # continúa la última sesión
+deepseek --resume <id>     # reanuda una concreta
 ```
 
 El historial que ve el modelo **se deriva del log** en cada turno, no vive en
@@ -942,7 +946,7 @@ qué se le envió al modelo y qué contestó, incluso los `tool/result`.
 ### Buscar en el pasado
 
 ```sh
-deekseep history search health
+deepseek history search health
 2026-11-02 12:00  20261102-120000-bbbbbb  [user]  arreglamos el endpoint /health…
 ```
 
@@ -984,11 +988,11 @@ La ventana se toma de la API; si no la reporta, de `context_window`, y si no,
 poder forzar compactaciones tempranas:
 
 ```sh
-deekseep config set context_window 32000
-deekseep config set compact off      # desactiva la compactación automática
+deepseek config set context_window 32000
+deepseek config set compact off      # desactiva la compactación automática
 ```
 
-> 💡 `deekseep-tokens` mide con la cifra real que reporta la API y solo estima lo
+> 💡 `deepseek-tokens` mide con la cifra real que reporta la API y solo estima lo
 > añadido desde entonces; `/tokens` te enseña la presión actual frente a la
 > ventana.
 
@@ -999,8 +1003,8 @@ deekseep config set compact off      # desactiva la compactación automática
 Si algo no funciona (p. ej. el chat se queda en "pensando..."), activa el logger para ver qué hace el cliente:
 
 ```sh
-deekseep --debug          # o DEEPSEEK_DEBUG=1 deekseep
-deekseep --debug ask "hola"
+deepseek --debug          # o DEEPSEEK_DEBUG=1 deepseek
+deepseek --debug ask "hola"
 ```
 
 Registra en stderr cada petición a la API con su estado y duración:

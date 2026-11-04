@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"deekseep-coder/internal/config"
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/i18n"
-	"deekseep-coder/internal/project"
+	"deepseek-coder/internal/config"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/i18n"
+	"deepseek-coder/internal/project"
 )
 
 func TestPromptLanguage(t *testing.T) {

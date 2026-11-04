@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"deekseep-coder/internal/deepseek"
+	"deepseek-coder/internal/deepseek"
 )
 
 func TestGroupNumber(t *testing.T) {

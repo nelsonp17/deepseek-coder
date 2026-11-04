@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"deekseep-coder/internal/deepseek"
+	"deepseek-coder/internal/deepseek"
 )
 
 func newSession(t *testing.T) (*Session, string) {
@@ -407,5 +407,31 @@ func TestEventJSONIsStable(t *testing.T) {
 		if !strings.Contains(string(raw), want) {
 			t.Errorf("event JSON %s is missing %s", raw, want)
 		}
+	}
+}
+
+// The sessions written before the rename must survive it.
+func TestDirMigratesTheLegacySessions(t *testing.T) {
+	base := t.TempDir()
+	t.Setenv("LOCALAPPDATA", base)
+	t.Setenv("XDG_DATA_HOME", base)
+
+	legacy := filepath.Join(base, "deekseep-coder", "sessions")
+	if err := os.MkdirAll(legacy, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(legacy, "vieja.jsonl"), []byte("{}\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	dir := Dir()
+	if !strings.HasPrefix(dir, filepath.Join(base, "deepseek-coder")) {
+		t.Fatalf("Dir() = %q, want it under deepseek-coder", dir)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "vieja.jsonl")); err != nil {
+		t.Errorf("the old sessions were not moved: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(base, "deekseep-coder")); !os.IsNotExist(err) {
+		t.Error("the legacy directory is still there")
 	}
 }

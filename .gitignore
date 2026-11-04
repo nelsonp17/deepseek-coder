@@ -1,10 +1,10 @@
 # Build artifacts
-/deekseep
-/deekseep.exe
-/cli/deekseep
-/cli/deekseep.exe
-/code/deekseep
-/code/deekseep.exe
+/deepseek
+/deepseek.exe
+/cli/deepseek
+/cli/deepseek.exe
+/code/deepseek
+/code/deepseek.exe
 /deepseek-harness-master
 /dist/
 # Editor

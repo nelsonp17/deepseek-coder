@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"deekseep-coder/internal/session"
+	"deepseek-coder/internal/session"
 )
 
 // The search tool looks in the real session directory, so the test points

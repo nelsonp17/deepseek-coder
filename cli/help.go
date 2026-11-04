@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"deekseep-coder/internal/i18n"
-	"deekseep-coder/internal/mcpx"
-	"deekseep-coder/internal/project"
+	"deepseek-coder/internal/i18n"
+	"deepseek-coder/internal/mcpx"
+	"deepseek-coder/internal/project"
 )
 
 // keyHelp is one row of the keyboard shortcut section of the help catalog.

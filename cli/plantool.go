@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"deekseep-coder/internal/deepseek"
+	"deepseek-coder/internal/deepseek"
 )
 
 // toolPlan is the tool the model calls to leave plan mode.

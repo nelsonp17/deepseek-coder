@@ -178,13 +178,13 @@ func TestPlainStripsInlineMarkers(t *testing.T) {
 // Styled spans must not inject a space where the source had none: punctuation
 // glued to an emphasised word has to stay glued.
 func TestPunctuationStaysAttached(t *testing.T) {
-	got := text(Render("el proyecto **deekseep-coder**. Y la rama `main`.", 80))
+	got := text(Render("el proyecto **deepseek-coder**. Y la rama `main`.", 80))
 	for _, bad := range []string{" .", " ,", " :", " )"} {
 		if strings.Contains(got, bad) {
 			t.Errorf("space inserted before punctuation %q in %q", bad, got)
 		}
 	}
-	for _, want := range []string{"deekseep-coder.", "main."} {
+	for _, want := range []string{"deepseek-coder.", "main."} {
 		if !strings.Contains(got, want) {
 			t.Errorf("missing %q in %q", want, got)
 		}

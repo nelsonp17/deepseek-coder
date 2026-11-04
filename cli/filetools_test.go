@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/fstools"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/fstools"
 )
 
 // fileTestApp returns an app whose file tools are rooted at dir.

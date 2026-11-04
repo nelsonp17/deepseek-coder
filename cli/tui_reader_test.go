@@ -5,7 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"deekseep-coder/internal/deepseek"
+	"deepseek-coder/internal/deepseek"
 )
 
 // newReaderModel builds a TUI in the middle of a turn, with a live chat channel.

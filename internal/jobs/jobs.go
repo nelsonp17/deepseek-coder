@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"deekseep-coder/internal/shell"
+	"deepseek-coder/internal/shell"
 )
 
 // Result is what a finished job produced.

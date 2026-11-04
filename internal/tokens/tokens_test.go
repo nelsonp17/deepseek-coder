@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"deekseep-coder/internal/deepseek"
+	"deepseek-coder/internal/deepseek"
 )
 
 func TestTextAndMessages(t *testing.T) {

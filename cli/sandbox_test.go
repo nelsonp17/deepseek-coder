@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"deekseep-coder/internal/config"
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/fstools"
+	"deepseek-coder/internal/config"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/fstools"
 )
 
 func toolCall(name, args string) deepseek.ToolCall {

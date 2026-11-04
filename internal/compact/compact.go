@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"strings"
 
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/tokens"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/tokens"
 )
 
 // Options are the thresholds that decide when and how much to compact.

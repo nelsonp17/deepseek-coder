@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/session"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/session"
 )
 
 // toolSearch is the tool that looks through past sessions.
@@ -73,7 +73,7 @@ func formatHits(hits []session.Hit) string {
 		fmt.Fprintf(&b, "\n[%s · %s · %s]\n%s\n",
 			hit.Time.Format("2006-01-02 15:04"), hit.SessionID, hit.Role, hit.Snippet)
 	}
-	b.WriteString("\nTo reopen one: deekseep --resume <session id>")
+	b.WriteString("\nTo reopen one: deepseek --resume <session id>")
 	return b.String()
 }
 

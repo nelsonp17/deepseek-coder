@@ -16,12 +16,12 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
 
-	"deekseep-coder/internal/clipboard"
-	"deekseep-coder/internal/config"
-	"deekseep-coder/internal/deepseek"
-	"deekseep-coder/internal/jobs"
-	"deekseep-coder/internal/markdown"
-	"deekseep-coder/internal/shell"
+	"deepseek-coder/internal/clipboard"
+	"deepseek-coder/internal/config"
+	"deepseek-coder/internal/deepseek"
+	"deepseek-coder/internal/jobs"
+	"deepseek-coder/internal/markdown"
+	"deepseek-coder/internal/shell"
 )
 
 // Styles.

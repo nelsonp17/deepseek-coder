@@ -112,6 +112,9 @@ func (c *Client) StreamChat(ctx context.Context, req ChatRequest, onChunk func(s
 		req.Model = c.model
 	}
 	req.Stream = true
+	// Ask for the final usage chunk: without it a streaming response reports
+	// no token accounting at all.
+	req.StreamOptions = &StreamOptions{IncludeUsage: true}
 
 	start := time.Now()
 	Debugf("POST %s/chat/completions model=%s messages=%d tools=%d", c.baseURL, req.Model, len(req.Messages), len(req.Tools))
@@ -171,6 +174,7 @@ func (c *Client) StreamChat(ctx context.Context, req ChatRequest, onChunk func(s
 	var full strings.Builder
 	var reasoning strings.Builder
 	var toolCalls []ToolCall
+	var usage *Usage
 	var reasonCb func(string)
 	if len(onReasoning) > 0 && onReasoning[0] != nil {
 		reasonCb = onReasoning[0]
@@ -194,6 +198,10 @@ func (c *Client) StreamChat(ctx context.Context, req ChatRequest, onChunk func(s
 		var chunk StreamChunk
 		if err := json.Unmarshal([]byte(payload), &chunk); err != nil {
 			continue // skip malformed chunks
+		}
+		// The final chunk may carry only the usage (with an empty choices list).
+		if chunk.Usage != nil {
+			usage = chunk.Usage
 		}
 		for _, ch := range chunk.Choices {
 			if ch.Delta.Content != "" {
@@ -239,15 +247,36 @@ func (c *Client) StreamChat(ctx context.Context, req ChatRequest, onChunk func(s
 		return nil, err
 	}
 	Debugf("stream done after %s: content=%d bytes reasoning=%d bytes toolCalls=%d", time.Since(start), full.Len(), reasoning.Len(), len(toolCalls))
-	return &StreamResult{Content: full.String(), ReasoningContent: reasoning.String(), ToolCalls: toolCalls}, nil
+	if usage != nil {
+		Debugf("stream usage: prompt=%d completion=%d total=%d", usage.PromptTokens, usage.CompletionTokens, usage.TotalTokens)
+	}
+	return &StreamResult{Content: full.String(), ReasoningContent: reasoning.String(), ToolCalls: toolCalls, Usage: usage}, nil
+}
+
+// Balance returns the account balance. It is a separate endpoint from the
+// chat API and is documented as GET /user/balance.
+func (c *Client) Balance(ctx context.Context) (*BalanceResponse, error) {
+	start := time.Now()
+	Debugf("GET %s/user/balance", c.baseURL)
+	var out BalanceResponse
+	if err := c.doJSON(ctx, http.MethodGet, "/user/balance", nil, &out); err != nil {
+		Debugf("GET /user/balance error after %s: %v", time.Since(start), err)
+		return nil, err
+	}
+	Debugf("GET /user/balance -> available=%v currencies=%d after %s", out.IsAvailable, len(out.BalanceInfos), time.Since(start))
+	return &out, nil
 }
 
 func (c *Client) doJSON(ctx context.Context, method, path string, in, out any) error {
-	body, err := json.Marshal(in)
-	if err != nil {
-		return err
+	var body io.Reader
+	if in != nil {
+		data, err := json.Marshal(in)
+		if err != nil {
+			return err
+		}
+		body = bytes.NewReader(data)
 	}
-	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, body)
 	if err != nil {
 		return err
 	}

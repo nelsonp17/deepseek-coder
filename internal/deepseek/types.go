@@ -36,6 +36,7 @@ type ChatRequest struct {
 	Model           string         `json:"model"`
 	Messages        []Message      `json:"messages"`
 	Stream          bool           `json:"stream,omitempty"`
+	StreamOptions   *StreamOptions `json:"stream_options,omitempty"`
 	Tools           []Tool         `json:"tools,omitempty"`
 	Thinking        map[string]any `json:"thinking,omitempty"` // {"type": "enabled"|"disabled"}
 	ReasoningEffort string         `json:"reasoning_effort,omitempty"`
@@ -43,11 +44,21 @@ type ChatRequest struct {
 	MaxTokens       *int           `json:"max_tokens,omitempty"`
 }
 
+// StreamOptions asks the API to report token usage on a streaming response.
+// Without it the final chunk carries no usage at all.
+type StreamOptions struct {
+	IncludeUsage bool `json:"include_usage"`
+}
+
 // Usage reports token usage for a completion.
 type Usage struct {
 	PromptTokens     int `json:"prompt_tokens"`
 	CompletionTokens int `json:"completion_tokens"`
 	TotalTokens      int `json:"total_tokens"`
+	// Cache counters are reported by DeepSeek; they let the CLI show how much
+	// of the prompt was served from the context cache.
+	PromptCacheHitTokens  int `json:"prompt_cache_hit_tokens,omitempty"`
+	PromptCacheMissTokens int `json:"prompt_cache_miss_tokens,omitempty"`
 }
 
 // ChatResponse is the non-streaming response of /chat/completions.
@@ -106,6 +117,7 @@ type StreamChunk struct {
 	ID      string `json:"id"`
 	Object  string `json:"object"`
 	Model   string `json:"model"`
+	Usage   *Usage `json:"usage,omitempty"`
 	Choices []struct {
 		Index        int     `json:"index"`
 		Delta        Delta   `json:"delta"`
@@ -118,4 +130,20 @@ type StreamResult struct {
 	Content          string
 	ReasoningContent string
 	ToolCalls        []ToolCall
+	// Usage is the token accounting reported by the API, when available.
+	Usage *Usage
+}
+
+// BalanceInfo is the balance of one currency in the account.
+type BalanceInfo struct {
+	Currency        string `json:"currency"`
+	TotalBalance    string `json:"total_balance"`
+	GrantedBalance  string `json:"granted_balance"`
+	ToppedUpBalance string `json:"topped_up_balance"`
+}
+
+// BalanceResponse is the response of GET /user/balance.
+type BalanceResponse struct {
+	IsAvailable  bool          `json:"is_available"`
+	BalanceInfos []BalanceInfo `json:"balance_infos"`
 }

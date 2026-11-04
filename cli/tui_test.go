@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -33,10 +35,10 @@ func TestTUIHelpAndQuit(t *testing.T) {
 	a := &app{
 		cfg:  &config.Config{Model: "deepseek-chat"},
 		msg:  i18n.For(i18n.ES),
-		perm: &permissions{allow: map[string]bool{}, deny: map[string]bool{}},
+		perm: &permissions{deny: map[string]bool{}},
 	}
 	client := deepseek.New(deepseek.Options{APIKey: "k"})
-	m := newTUIModel(a, client, "deepseek-chat", nil)
+	m := newTUIModel(a, client, "deepseek-chat")
 	p := tea.NewProgram(m, tea.WithInput(strings.NewReader("/help\r\x03")), tea.WithOutput(io.Discard))
 	final, err := p.Run()
 	if err != nil {
@@ -64,10 +66,10 @@ func TestTUIUnknownCommand(t *testing.T) {
 	a := &app{
 		cfg:  &config.Config{Model: "deepseek-chat"},
 		msg:  i18n.For(i18n.ES),
-		perm: &permissions{allow: map[string]bool{}, deny: map[string]bool{}},
+		perm: &permissions{deny: map[string]bool{}},
 	}
 	client := deepseek.New(deepseek.Options{APIKey: "k"})
-	m := newTUIModel(a, client, "deepseek-chat", nil)
+	m := newTUIModel(a, client, "deepseek-chat")
 	p := tea.NewProgram(m, tea.WithInput(strings.NewReader("/noexiste\r\x03")), tea.WithOutput(io.Discard))
 	final, err := p.Run()
 	if err != nil {
@@ -125,10 +127,10 @@ func TestTUIModelSelect(t *testing.T) {
 	a := &app{
 		cfg:  &config.Config{Model: "deepseek-chat"},
 		msg:  i18n.For(i18n.ES),
-		perm: &permissions{allow: map[string]bool{}, deny: map[string]bool{}},
+		perm: &permissions{deny: map[string]bool{}},
 	}
-	m := newTUIModel(a, client, "deepseek-chat", nil)
-	in := &delayedReader{first: []byte("/models\r"), second: []byte("\x03"), delay: 500 * time.Millisecond}
+	m := newTUIModel(a, client, "deepseek-chat")
+	in := &delayedReader{first: []byte("/models\r"), second: []byte("\x03"), delay: 2 * time.Second}
 	p := tea.NewProgram(m, tea.WithInput(in), tea.WithOutput(io.Discard))
 	final, err := p.Run()
 	if err != nil {
@@ -154,6 +156,10 @@ func TestTUIStreamingChat(t *testing.T) {
 		fmt.Fprint(w, `data: {"id":"1","choices":[{"index":0,"delta":{"content":"Hola"},"finish_reason":null}]}`+"\n\n")
 		fmt.Fprint(w, `data: {"id":"1","choices":[{"index":0,"delta":{"content":"!"},"finish_reason":null}]}`+"\n\n")
 		fmt.Fprint(w, `data: {"id":"1","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}`+"\n\n")
+		// The usage chunk arrives after the answer. It used to kill the reader
+		// chain and leave the TUI stuck on "pensando...", so this line is part
+		// of the regression: the turn must still close.
+		fmt.Fprint(w, `data: {"id":"1","choices":[],"usage":{"prompt_tokens":42,"completion_tokens":2,"total_tokens":44}}`+"\n\n")
 		fmt.Fprint(w, "data: [DONE]\n\n")
 	}))
 	defer server.Close()
@@ -162,10 +168,10 @@ func TestTUIStreamingChat(t *testing.T) {
 	a := &app{
 		cfg:  &config.Config{Model: "deepseek-chat"},
 		msg:  i18n.For(i18n.ES),
-		perm: &permissions{allow: map[string]bool{}, deny: map[string]bool{}},
+		perm: &permissions{deny: map[string]bool{}},
 	}
-	m := newTUIModel(a, client, "deepseek-chat", nil)
-	in := &delayedReader{first: []byte("hola\r"), second: []byte("\x03"), delay: 500 * time.Millisecond}
+	m := newTUIModel(a, client, "deepseek-chat")
+	in := &delayedReader{first: []byte("hola\r"), second: []byte("\x03"), delay: 2 * time.Second}
 	p := tea.NewProgram(m, tea.WithInput(in), tea.WithOutput(io.Discard))
 	final, err := p.Run()
 	if err != nil {
@@ -190,5 +196,152 @@ func TestTUIStreamingChat(t *testing.T) {
 	}
 	if fm.reasoning == "" {
 		t.Errorf("reasoning content was not displayed, got %q", fm.reasoning)
+	}
+}
+
+func testTUIModel(t *testing.T) tuiModel {
+	t.Helper()
+	a := &app{
+		cfg:  &config.Config{Model: "deepseek-chat"},
+		msg:  i18n.For(i18n.ES),
+		perm: &permissions{deny: map[string]bool{}},
+	}
+	client := deepseek.New(deepseek.Options{APIKey: "k"})
+	return newTUIModel(a, client, "deepseek-chat")
+}
+
+// Scrolling up to read history must not be undone by the next streamed chunk.
+func TestViewportKeepsScrollPosition(t *testing.T) {
+	m := testTUIModel(t)
+	m.width, m.height = 40, 20
+	m = m.handleResize()
+	for i := 0; i < 40; i++ {
+		m = m.addEntry("assistant", fmt.Sprintf("linea %d", i))
+	}
+	m = m.refreshViewportFollow()
+	if !m.viewport.AtBottom() {
+		t.Fatal("expected the viewport to start at the bottom")
+	}
+
+	m.viewport.SetYOffset(0)
+	offset := m.viewport.YOffset
+
+	m = m.addEntry("assistant", "texto nuevo")
+	m = m.refreshViewport()
+
+	if m.viewport.AtBottom() {
+		t.Error("viewport jumped to the bottom while the user was reading history")
+	}
+	if m.viewport.YOffset != offset {
+		t.Errorf("YOffset = %d, want %d", m.viewport.YOffset, offset)
+	}
+}
+
+// Arrow keys are the terminal's wheel translation: they may scroll the chat
+// only while the input is empty. With text in the input they belong to the
+// textarea, so typing is never disturbed.
+func TestViewportOnlyGetsScrollKeys(t *testing.T) {
+	if _, ok := viewportMsg(tea.KeyMsg{Type: tea.KeyUp}, true); !ok {
+		t.Error("arrow keys with an empty input should scroll the viewport")
+	}
+	if _, ok := viewportMsg(tea.KeyMsg{Type: tea.KeyDown}, true); !ok {
+		t.Error("arrow keys with an empty input should scroll the viewport")
+	}
+	if _, ok := viewportMsg(tea.KeyMsg{Type: tea.KeyUp}, false); ok {
+		t.Error("arrow keys while typing must not reach the viewport")
+	}
+	if _, ok := viewportMsg(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")}, true); ok {
+		t.Error("typing must not reach the viewport")
+	}
+	if _, ok := viewportMsg(tea.KeyMsg{Type: tea.KeyPgUp}, false); !ok {
+		t.Error("pgup must always reach the viewport")
+	}
+	if _, ok := viewportMsg(tea.KeyMsg{Type: tea.KeyPgDown}, false); !ok {
+		t.Error("pgdown must always reach the viewport")
+	}
+	if _, ok := viewportMsg(tea.MouseMsg{}, false); !ok {
+		t.Error("mouse events must reach the viewport")
+	}
+}
+
+func TestPlainEntriesIsCopyable(t *testing.T) {
+	m := testTUIModel(t)
+	m = m.addEntry("user", "hola")
+	m = m.addEntry("assistant", "mundo")
+	got := m.plainEntries()
+	if !strings.Contains(got, "hola") || !strings.Contains(got, "mundo") {
+		t.Errorf("transcript lost content: %q", got)
+	}
+	if strings.Contains(got, "\x1b[") {
+		t.Errorf("transcript contains ANSI escapes: %q", got)
+	}
+	if !strings.Contains(got, m.app.msg.UserLabel) {
+		t.Errorf("transcript is missing the user label: %q", got)
+	}
+}
+
+func TestSaveTranscriptFile(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "chat.md")
+	got, err := saveTranscriptFile(path, "hola\n")
+	if err != nil {
+		t.Fatalf("saveTranscriptFile: %v", err)
+	}
+	data, err := os.ReadFile(got)
+	if err != nil {
+		t.Fatalf("read back: %v", err)
+	}
+	if string(data) != "hola\n" {
+		t.Errorf("saved %q, want %q", string(data), "hola\n")
+	}
+}
+
+// Assistant answers are shown rendered, not as raw Markdown source.
+func TestAssistantMessagesAreRendered(t *testing.T) {
+	m := testTUIModel(t)
+	m.width, m.height = 60, 24
+	m = m.handleResize()
+	m = m.addEntry("user", "hola")
+	m = m.addEntry("assistant", "**Importante:** usa `go build`.\n\n- uno\n- dos")
+	m = m.refreshViewportFollow()
+
+	vp := m.viewport.View()
+	for _, marker := range []string{"**", "`"} {
+		if strings.Contains(vp, marker) {
+			t.Errorf("raw Markdown marker %q leaked into the viewport:\n%s", marker, vp)
+		}
+	}
+	for _, want := range []string{"Importante", "go build", "• uno"} {
+		if !strings.Contains(vp, want) {
+			t.Errorf("missing %q in the viewport:\n%s", want, vp)
+		}
+	}
+}
+
+// The per-entry render cache must notice content and width changes.
+func TestRenderCacheInvalidates(t *testing.T) {
+	m := testTUIModel(t)
+	m.width, m.height = 60, 24
+	m = m.handleResize()
+	m = m.addEntry("assistant", "uno")
+	m = m.refreshViewport()
+
+	idx := len(m.entries) - 1
+	before := m.renderCache[idx].out
+
+	m.entries[idx].content = "dos"
+	m = m.refreshViewport()
+	if m.renderCache[idx].out == before {
+		t.Error("cache was not invalidated by a content change")
+	}
+	if !strings.Contains(m.viewport.View(), "dos") {
+		t.Errorf("new content is not visible:\n%s", m.viewport.View())
+	}
+
+	// A resize changes the wrap width, so everything must be re-rendered.
+	m.width = 40
+	m = m.handleResize()
+	m = m.refreshViewport()
+	if m.renderWidth != m.viewport.Width-4 {
+		t.Errorf("renderWidth = %d, want %d", m.renderWidth, m.viewport.Width-4)
 	}
 }

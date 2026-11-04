@@ -249,7 +249,7 @@ func TestConfirmTool(t *testing.T) {
 	newApp := func() *app {
 		return &app{
 			msg:  i18n.For(i18n.ES),
-			perm: &permissions{allow: map[string]bool{}, deny: map[string]bool{}},
+			perm: &permissions{deny: map[string]bool{}},
 		}
 	}
 	tc := deepseek.ToolCall{ID: "1", Function: struct {
@@ -273,8 +273,8 @@ func TestConfirmTool(t *testing.T) {
 		if err != nil || !ok {
 			t.Fatalf("confirmTool = %v, %v; want true", ok, err)
 		}
-		if a.perm.allow["echo"] {
-			t.Error("y should not remember the decision")
+		if a.approvalAuto {
+			t.Error("y should not change the session policy")
 		}
 	})
 
@@ -294,7 +294,9 @@ func TestConfirmTool(t *testing.T) {
 		}
 	})
 
-	t.Run("always remembers allow", func(t *testing.T) {
+	// "auto" is a session policy, not a per-tool grant: it stops asking for
+	// everything, which is why the UI shows a warning while it is active.
+	t.Run("auto changes the session policy", func(t *testing.T) {
 		old := stdinInteractive
 		stdinInteractive = interactive
 		defer func() { stdinInteractive = old }()
@@ -308,10 +310,20 @@ func TestConfirmTool(t *testing.T) {
 		if !ok {
 			t.Fatal("confirmTool = false, want true")
 		}
+		if !a.approvalAuto {
+			t.Fatal("a should switch the session to auto")
+		}
 		// Second call must not prompt (stdin is now empty).
 		ok, err := a.confirmTool(tc)
 		if err != nil || !ok {
-			t.Fatalf("remembered allow failed: %v, %v", ok, err)
+			t.Fatalf("auto policy did not allow without asking: %v, %v", ok, err)
+		}
+		// And it can be restored.
+		if err := a.setApprovals("ask"); err != nil {
+			t.Fatalf("setApprovals(ask): %v", err)
+		}
+		if a.approvalAuto {
+			t.Error("setApprovals(ask) did not restore asking")
 		}
 	})
 
@@ -344,6 +356,26 @@ func TestConfirmTool(t *testing.T) {
 		ok, err := a.confirmTool(tc)
 		if err != nil || ok {
 			t.Fatalf("confirmTool = %v, %v; want false (deny by default)", ok, err)
+		}
+	})
+
+	// A prompt that nobody answers (EOF) must deny the call, not abort the
+	// whole turn: doing that threw away the model's answer.
+	t.Run("eof denies without error", func(t *testing.T) {
+		old := stdinInteractive
+		stdinInteractive = interactive
+		defer func() { stdinInteractive = old }()
+
+		r, w, _ := os.Pipe()
+		os.Stdin = r
+		w.Close() // immediate EOF
+		a := newApp()
+		ok, err := a.confirmTool(tc)
+		if err != nil {
+			t.Fatalf("confirmTool returned %v on EOF, want nil", err)
+		}
+		if ok {
+			t.Error("an unanswered prompt must deny")
 		}
 	})
 }
@@ -402,6 +434,22 @@ func TestFileCompletion(t *testing.T) {
 	}
 }
 
+// Paths with spaces are quoted so the reference stays one token, which is what
+// the attachment resolver expects.
+func TestFileCompletionQuotesPathsWithSpaces(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "mi archivo.go"), nil, 0o644)
+	t.Chdir(dir)
+
+	comp := fileCompletion("mi")
+	if len(comp.Candidates) != 1 {
+		t.Fatalf("candidates = %v, want 1", comp.Candidates)
+	}
+	if comp.Candidates[0] != `@"mi archivo.go"` {
+		t.Errorf("candidate = %q, want a quoted reference", comp.Candidates[0])
+	}
+}
+
 func TestCommandCompletion(t *testing.T) {
 	a := &app{
 		msg:  i18n.For(i18n.ES),
@@ -430,8 +478,14 @@ func TestSkillOrToolRef(t *testing.T) {
 	if !ok {
 		t.Fatal("expected skill reference")
 	}
-	if !strings.Contains(ref, "caveman") || !strings.Contains(ref, "haz algo") {
-		t.Errorf("ref = %q", ref)
+	if !strings.Contains(ref.Payload, "caveman") || !strings.Contains(ref.Payload, "haz algo") {
+		t.Errorf("payload = %q", ref.Payload)
+	}
+	if !strings.Contains(ref.Display, "haz algo") {
+		t.Errorf("display lost the typed text: %q", ref.Display)
+	}
+	if strings.Contains(ref.Display, "Persistence") {
+		t.Errorf("the skill body leaked into the display: %q", ref.Display)
 	}
 
 	if _, ok := a.skillOrToolRef("/no-existe"); ok {

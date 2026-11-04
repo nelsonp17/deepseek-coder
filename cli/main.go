@@ -178,6 +178,13 @@ func (a *app) environmentString() string {
 }
 
 func run(args []string) error {
+	// --version must work before anything else: a broken config or an
+	// unavailable keyring should not stop a user from asking which build they
+	// are running.
+	if wantsVersion(args) {
+		fmt.Println(versionString())
+		return nil
+	}
 	// --debug enables verbose logging of API requests.
 	if len(args) > 0 && (args[0] == "--debug" || args[0] == "-d") {
 		os.Setenv("DEEPSEEK_DEBUG", "1")

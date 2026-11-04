@@ -564,6 +564,7 @@ Uso:
   deekseep --json ask ...       salida NDJSON (start/delta/usage/done/error) para scripts
   deekseep -c                   continúa la última sesión guardada
   deekseep --resume <id>        reanuda una sesión concreta
+  deekseep --version            muestra la versión compilada
   deekseep config get           muestra la configuración actual
   deekseep config set <clave> <valor>
                                 configura un valor (api_key, model, base_url, lang,
@@ -888,6 +889,7 @@ Usage:
   deekseep --json ask ...     NDJSON output (start/delta/usage/done/error) for scripts
   deekseep -c                 continue the most recent saved session
   deekseep --resume <id>      resume a specific session
+  deekseep --version          show the compiled version
   deekseep config get         show current configuration
   deekseep config set <key> <value>
                               set a config value (api_key, model, base_url, lang,

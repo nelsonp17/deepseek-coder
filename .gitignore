@@ -6,6 +6,7 @@
 /code/deekseep
 /code/deekseep.exe
 /deepseek-harness-master
+/dist/
 # Editor
 .idea/
 .vscode/

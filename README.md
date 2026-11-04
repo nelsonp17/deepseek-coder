@@ -134,13 +134,43 @@ go build -o deekseep.exe ./cli    # Windows
 go run ./cli                      # o ./deekseep tras compilar
 ```
 
-### Cross-compilación (un binario por plataforma)
+Para una versión concreta, estampa el número en el binario:
 
 ```sh
-GOOS=windows GOARCH=amd64 go build -o deekseep-windows.exe ./cli
-GOOS=darwin  GOARCH=arm64 go build -o deekseep-macos ./cli
-GOOS=linux   GOARCH=amd64 go build -o deekseep-linux ./cli
+./build.ps1 -Version v0.1.0          # solo esta máquina
+./build.ps1 -Version v0.1.0 -All     # Windows + Linux + macOS
 ```
+
+El script compila con `-trimpath -ldflags "-s -w -X main.version=..."` y deja los binarios en `dist/`. A mano es lo mismo:
+
+```sh
+go build -trimpath -ldflags "-s -w -X main.version=v0.1.0" -o dist/deekseep ./cli
+```
+
+```console
+$ deekseep --version
+deekseep v0.1.0 (windows/amd64, go1.26.1)
+```
+
+Sin `-X` el binario se identifica como `dev`, para que nunca se confunda un build de trabajo con una release.
+
+### Cross-compilación (un binario por plataforma)
+
+Lo más simple es el script:
+
+```sh
+./build.ps1 -Version v0.1.0 -All
+```
+
+Y si prefieres los comandos a mano:
+
+```sh
+GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.version=v0.1.0" -o dist/deekseep-windows.exe ./cli
+GOOS=darwin  GOARCH=arm64 go build -trimpath -ldflags "-s -w -X main.version=v0.1.0" -o dist/deekseep-macos ./cli
+GOOS=linux   GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.version=v0.1.0" -o dist/deekseep-linux ./cli
+```
+
+Son binarios estáticos: no necesitan Go instalado en la máquina de destino.
 
 ### GUI
 
@@ -187,6 +217,7 @@ Comandos disponibles:
 | `deekseep history delete <id>` | Elimina una sesión |
 | `deekseep models` | Lista los modelos disponibles en la API |
 | `deekseep balance` | Consulta el saldo de la cuenta en la API |
+| `deekseep --version` | Muestra la versión compilada y la plataforma |
 | `deekseep help` | Ayuda |
 
 Dentro del chat interactivo puedes usar comandos de sesión:
